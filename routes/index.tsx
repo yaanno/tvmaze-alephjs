@@ -1,27 +1,30 @@
-import { Head, Link } from "aleph/react"
+import { Head, Link, useData } from "aleph/react"
+import Listings from "~/components/sections/Listings.tsx"
+import TimeTable from "../components/sections/Timetables.tsx"
+import { getTimeTable, scheduledToday } from "../models/schedule.ts"
+import type { Schedule } from "../models/types.ts"
 
-const Programmes = [
-  {
-    time: "20:00",
-    channel: { name: "ABC", link: "/abc" },
-    show: { title: "Bachelor in Paradise 1", link: "/bachelor-in-paradise" },
-    episode: "Episode 3",
+interface Store {
+  popularShows?: Schedule | null
+  upComingShows?: Schedule | null
+  timeTables?: any[]
+}
+
+export const data: Data = {
+  get: async () => {
+    return {
+      popularShows: await scheduledToday(),
+      upComingShows: await scheduledToday(),
+      timeTables: await getTimeTable(),
+    }
   },
-  {
-    time: "20:10",
-    channel: { name: "ABC", link: "/abc" },
-    show: { title: "Bachelor in Paradise 2", link: "/bachelor-in-paradise" },
-    episode: "Episode 3",
-  },
-  {
-    time: "20:30",
-    channel: { name: "ABC", link: "/abc" },
-    show: { title: "Bachelor in Paradise 3", link: "/bachelor-in-paradise" },
-    episode: "Episode 3",
-  },
-]
+}
 
 export default function Index() {
+  const {
+    data: { popularShows, upComingShows, timeTables },
+  } = useData<Store>()
+
   return (
     <div className="w-full my-4">
       <Head>
@@ -29,30 +32,40 @@ export default function Index() {
         <meta name="description" content="TV Maze" />
       </Head>
 
-      <div className="max-w-7xl grid grid-cols-3 gap-1 m-auto">
-        <main className="col-span-2">
-          <h2 className="text-3xl">Popular shows airing tonight</h2>
-          <div>{/* Pop show cards */}</div>
-          <div className="mt-4">
-            <Link
-              className="px-4 py-2 border-1 rounded-full inline-flex hover:bg-gray-400 hover:text-white"
-              to="/shedules"
-            >
-              More shows
-            </Link>
-          </div>
-          <h2 className="text-3xl">Upcoming Season Premieres</h2>
-          <div>{/* Upcoming Season cards */}</div>
-          <div className="mt-4">
-            <Link
-              className="px-4 py-2 border-1 rounded-full inline-flex hover:bg-gray-400 hover:text-white"
-              to="/shedules"
-            >
-              Countdown
-            </Link>
-          </div>
+      <div className="max-w-7xl grid grid-cols-3 gap-8 m-auto">
+        <main className="col-span-3 md:col-span-2 px-4 md:pr-0">
+          <h2 className="text-3xl mb-5">Popular shows airing tonight</h2>
+
+          {popularShows ? (
+            <>
+              <Listings episodes={popularShows} />
+              <div className="my-4 text-center">
+                <Link
+                  className="px-4 py-2 border-1 rounded-full inline-flex hover:bg-gray-400 hover:text-white"
+                  to="/"
+                >
+                  More shows
+                </Link>
+              </div>
+            </>
+          ) : null}
+
+          <h2 className="text-3xl mb-5">Upcoming Season Premieres</h2>
+          {upComingShows ? (
+            <>
+              <Listings episodes={upComingShows} />
+              <div className="my-4 text-center">
+                <Link
+                  className="px-4 py-2 border-1 rounded-full inline-flex hover:bg-gray-400 hover:text-white"
+                  to="/"
+                >
+                  Countdown
+                </Link>
+              </div>
+            </>
+          ) : null}
           <h2 className="text-3xl">Latest Blogs, Articles and News</h2>
-          <div className="mt-4">
+          <div className="my-4 text-center">
             <Link
               role="link"
               className="px-4 py-2 border-1 
@@ -63,41 +76,25 @@ export default function Index() {
             </Link>
           </div>
         </main>
-        <aside>
-          <h3 className="text-2xl mb-4">Schedule for Oct 03</h3>
-          <div className="mb-4">
-            <header className="p4 bg-gray-800 text-white">20:00</header>
-            {Programmes.map((p) => (
-              <div
-                key={p.show.title}
-                className="grid grid-cols-4 bg-gray-100 odd:bg-white border-1"
-              >
-                <div className="col-span-1 p4 self-center">
-                  <div>{p.time}</div>
-                  <div>
-                    <Link className="hover:underline" to={p.channel.link}>
-                      {p.channel.name}
-                    </Link>
-                  </div>
-                </div>
-                <div className="col-span-3 p4 self-center">
-                  <h4 className="text-2xl">
-                    <Link className="hover:underline" to={p.show.link}>
-                      {p.show.title}
-                    </Link>
-                  </h4>
-                  <p>{p.episode}</p>
-                </div>
-              </div>
+        <aside className="col-span-3 md:col-span-1 sm:pr-4">
+          <h3 className="text-2xl mb-5 text-center sm:text-left">
+            Schedule for Oct 03
+          </h3>
+          {timeTables &&
+            timeTables.map((timeTable) => (
+              <TimeTable
+                key={timeTable.time}
+                time={timeTable.time}
+                shows={timeTable.shows}
+              />
             ))}
-            <div className="text-center mt-4">
-              <Link
-                className="p-4 border-1 rounded-full inline-flex hover:bg-gray-400 hover:text-white"
-                to="/shedules"
-              >
-                View detailed schedule
-              </Link>
-            </div>
+          <div className="text-center mt-4">
+            <Link
+              className="p-4 border-1 rounded-full inline-flex hover:bg-gray-400 hover:text-white"
+              to="/"
+            >
+              View detailed schedule
+            </Link>
           </div>
           <h3 className="text-2xl mb-4">Recently added shows</h3>
           <div className="mb-4"></div>

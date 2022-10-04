@@ -15,7 +15,7 @@ const NavItems = [
 
 export default function Header() {
   return (
-    <header className="w-full bg-gray-700">
+    <header className="w-full bg-slate-700">
       <div className="max-w-7xl m-auto">
         <h1>TVMAZE</h1>
         <input type="search" />
@@ -25,11 +25,14 @@ export default function Header() {
           <Link to="/register">Register</Link>
         </div>
       </div>
-      <nav className="bg-gray-500">
-        <ul className="max-w-full lg:max-w-7xl m-auto flex flex-row">
+      <nav className="bg-slate-500">
+        <ul className="max-w-full lg:max-w-7xl m-auto flex flex-row flex-wrap">
           {NavItems.map((item) => (
             <li key={item}>
-              <NavLink className="hover:bg-gray-700 p4 block text-white" to="/">
+              <NavLink
+                className="hover:bg-slate-700 p4 block text-white"
+                to="/"
+              >
                 {item}
               </NavLink>
             </li>
