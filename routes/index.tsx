@@ -1,10 +1,11 @@
 import { Head, Link, useData } from "aleph/react"
+import { format } from "https://deno.land/std@0.155.0/datetime/mod.ts"
 import Listings from "~/components/sections/Listings.tsx"
 import TimeTable from "~/components/sections/Timetables.tsx"
 import {
   scheduledTimeTable,
   scheduledToday,
-  scheduledTomorrow,
+  upcomingPremieres,
 } from "../models/schedule.ts"
 import type { Schedule, TimeTable as TimeTableType } from "../models/types.ts"
 
@@ -18,7 +19,7 @@ export const data: Data = {
   get: async () => {
     const promises = [
       scheduledToday(),
-      scheduledTomorrow(),
+      upcomingPremieres(),
       scheduledTimeTable(),
     ]
     const results = await Promise.all(promises)
@@ -87,7 +88,7 @@ export default function Index() {
         </main>
         <aside className="col-span-3 md:col-span-1 sm:pr-4">
           <h3 className="text-2xl mb-5 text-center sm:text-left">
-            Schedule for Oct 03
+            Schedule for {new Date().toDateString()}
           </h3>
           {timeTables &&
             timeTables.map((timeTable) => (

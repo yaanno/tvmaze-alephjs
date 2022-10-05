@@ -1,27 +1,54 @@
 import type { Schedule, TimeTable } from "./types.ts"
-import ScheduleApi from "./api.ts"
+import TVScheduleApi from "./api.tv.ts"
 import { format } from "std/datetime/mod.ts"
 
-function processTimetableData(data: ScheduleApi.Item[]): TimeTable[] {
+function sortByTime(items: TVScheduleApi.Item[], order = "asc") {
+  return items.sort((a1, a2) => {
+    if (order === "asc") {
+      return Date.parse(a1.airstamp) - Date.parse(a2.airstamp)
+    }
+    return Date.parse(a2.airstamp) - Date.parse(a1.airstamp)
+  })
+}
+
+function sortByRating(items: TVScheduleApi.Item[], order = "desc") {
+  return items.sort((a1, a2) => {
+    if (order === "asc") {
+      return Number(a1.show.rating.average) - Number(a2.show.rating.average)
+    }
+    return Number(a2.show.rating.average) - Number(a1.show.rating.average)
+  })
+}
+
+function processTimetableData(data: TVScheduleApi.Item[]): TimeTable[] {
   const map = new Map()
-  // lazy filtering of empty airtime items
-  const withAirTime = data.filter((episode) => episode.airtime != "")
+  const sorted = sortByTime(data)
+  const withAirTime = sorted.map((episode) => {
+    if (episode.airtime === "") {
+      episode.airtime = format(new Date(episode.airstamp), "HH:mm")
+    }
+    return episode
+  })
   // k,v grouping of items by `airtime`
   withAirTime.forEach((episode) => {
     if (!map.get(episode.airtime)) {
       map.set(episode.airtime, [episode])
     } else {
       const val = map.get(episode.airtime)
-      map.set(episode.airtime, val.append(episode))
+      val.push(episode)
+      map.set(episode.airtime, val)
     }
   })
   const result = [] as TimeTable[]
   for (const [key, value] of map) {
-    const episodes = value.map((episode: ScheduleApi.Item) => {
+    const episodes = value.map((episode: TVScheduleApi.Item) => {
       {
-        const { season, number, airdate, airstamp, id, url, name, _embedded } =
+        const { season, number, airdate, airstamp, id, url, name, show } =
           episode
-        const show = _embedded.show
+        const channel = {
+          name: show.network?.name || show.webChannel?.name,
+          url: show.network?.officialSite || show.webChannel?.officialSite,
+        }
         return {
           episode: {
             name: name,
@@ -36,10 +63,7 @@ function processTimetableData(data: ScheduleApi.Item[]): TimeTable[] {
           name: show.name,
           schedule: show.schedule,
           image: show.image,
-          channel: {
-            name: show.webChannel.name,
-            url: show.webChannel.officialSite,
-          },
+          channel,
         }
       }
     })
@@ -51,10 +75,10 @@ function processTimetableData(data: ScheduleApi.Item[]): TimeTable[] {
   return result
 }
 
-export function processData(data: ScheduleApi.Item[]) {
-  return data.map((e) => {
-    const { season, number, airdate, airstamp, id, url, name, _embedded } = e
-    const { show } = _embedded
+function processData(data: TVScheduleApi.Item[], maxLength = 4) {
+  const sorted = sortByRating(data)
+  const result = sorted.map((e) => {
+    const { season, number, airdate, airstamp, id, url, name, show } = e
 
     return {
       season,
@@ -73,114 +97,49 @@ export function processData(data: ScheduleApi.Item[]) {
       },
     }
   })
+  return result.slice(0, maxLength)
 }
 
-export async function scheduledTomorrow(): Promise<Schedule> {
+function filterPremiering(data: TVScheduleApi.Item[]) {
   const today = format(new Date(), "yyyy-MM-dd")
-  const url = `https://api.tvmaze.com/schedule/web?date=${today}&country=US`
-  const response = await fetch(url)
-  if (!response.ok) {
-    return []
-  }
-  const data: ScheduleApi.Item[] = await response.json()
-  return processData(data)
+  return data.filter((item) => {
+    return Date.parse(item.show.premiered) >= Date.parse(today)
+  })
 }
 
 export async function scheduledToday(): Promise<Schedule> {
-  const today = format(new Date(), "yyyy-MM-dd")
-  const url = `https://api.tvmaze.com/schedule/web?date=${today}&country=US`
+  // const today = format(new Date(), "yyyy-MM-dd")
+  const url = `https://api.tvmaze.com/schedule?country=US`
   const response = await fetch(url)
   if (!response.ok) {
     return []
   }
-  const data: ScheduleApi.Item[] = await response.json()
+  const data: TVScheduleApi.Item[] = await response.json()
 
   // preprocess data
   return processData(data)
 }
 
-export async function scheduledTimeTable(): Promise<TimeTable[]> {
-  const today = format(new Date(), "yyyy-MM-dd")
-  const url = `https://api.tvmaze.com/schedule/web?date=${today}&country=US`
+export async function upcomingPremieres(): Promise<Schedule> {
+  const url = `https://api.tvmaze.com/schedule?country=US`
   const response = await fetch(url)
   if (!response.ok) {
     return []
   }
-  const data: ScheduleApi.Item[] = await response.json()
-  return processTimetableData(data)
+  const data: TVScheduleApi.Item[] = await response.json()
+
+  // preprocess data
+  const premiered = filterPremiering(data)
+  return processData(premiered)
 }
 
-export async function getTimeTable() {
-  return await [
-    {
-      time: "20:00",
-      shows: [
-        {
-          schedule: { time: "20:00" },
-          channel: { name: "ABC", url: "/abcd" },
-          name: "Bachelor in Paradise 1",
-          url: "/bachelor-in-paradise-1",
-          episode: {
-            name: "Episode 3",
-            url: "/",
-          },
-        },
-        {
-          schedule: { time: "20:00" },
-          channel: { name: "ABC", url: "/abcde" },
-          name: "Bachelor in Paradise 1",
-          url: "/bachelor-in-paradise-2",
-          episode: {
-            name: "Episode 3",
-            url: "/",
-          },
-        },
-        {
-          schedule: { time: "20:00" },
-          channel: { name: "ABC", url: "/abcef" },
-          name: "Bachelor in Paradise 1",
-          url: "/bachelor-in-paradise-3",
-          episode: {
-            name: "Episode 3",
-            url: "/",
-          },
-        },
-      ],
-    },
-    {
-      time: "21:00",
-      shows: [
-        {
-          schedule: { time: "21:00" },
-          channel: { name: "ABC", url: "/abcsdf" },
-          name: "Bachelor in Paradise 1",
-          url: "/bachelor-in-paradise-4",
-          episode: {
-            name: "Episode 3",
-            url: "/",
-          },
-        },
-        {
-          schedule: { time: "21:10" },
-          channel: { name: "ABC", url: "/abcfgh" },
-          name: "Bachelor in Paradise 1",
-          url: "/bachelor-in-paradise-5",
-          episode: {
-            name: "Episode 3",
-            url: "/",
-          },
-        },
-        {
-          schedule: { time: "21:20" },
-          channel: { name: "ABC", url: "/abcqweqwe" },
-          name: "Bachelor in Paradise 1",
-          url: "/bachelor-in-paradise-6",
-          episode: {
-            name: "Episode 3",
-            url: "/",
-          },
-        },
-      ],
-    },
-  ]
+export async function scheduledTimeTable(): Promise<TimeTable[]> {
+  // const today = format(new Date(), "yyyy-MM-dd")
+  const url = `https://api.tvmaze.com/schedule?country=US`
+  const response = await fetch(url)
+  if (!response.ok) {
+    return []
+  }
+  const data: TVScheduleApi.Item[] = await response.json()
+  return processTimetableData(data)
 }
