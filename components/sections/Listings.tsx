@@ -14,7 +14,7 @@ export default function Listings({ episodes }: { episodes: Episode[] }) {
               <img
                 alt={episode.name}
                 className="rounded shadow inline-flex object-fill w-full"
-                src={episode.show.image.medium}
+                src={episode.show.image?.medium}
               />
             </a>
             <h4 className="text-2xl">

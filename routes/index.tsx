@@ -1,21 +1,31 @@
 import { Head, Link, useData } from "aleph/react"
 import Listings from "~/components/sections/Listings.tsx"
-import TimeTable from "../components/sections/Timetables.tsx"
-import { getTimeTable, scheduledToday } from "../models/schedule.ts"
-import type { Schedule } from "../models/types.ts"
+import TimeTable from "~/components/sections/Timetables.tsx"
+import {
+  scheduledTimeTable,
+  scheduledToday,
+  scheduledTomorrow,
+} from "../models/schedule.ts"
+import type { Schedule, TimeTable as TimeTableType } from "../models/types.ts"
 
 interface Store {
-  popularShows?: Schedule | null
-  upComingShows?: Schedule | null
-  timeTables?: any[]
+  popularShows?: Schedule
+  upComingShows?: Schedule
+  timeTables?: TimeTableType[]
 }
 
 export const data: Data = {
   get: async () => {
+    const promises = [
+      scheduledToday(),
+      scheduledTomorrow(),
+      scheduledTimeTable(),
+    ]
+    const results = await Promise.all(promises)
     return {
-      popularShows: await scheduledToday(),
-      upComingShows: await scheduledToday(),
-      timeTables: await getTimeTable(),
+      popularShows: results[0],
+      upComingShows: results[1],
+      timeTables: results[2],
     }
   },
 }
@@ -24,7 +34,6 @@ export default function Index() {
   const {
     data: { popularShows, upComingShows, timeTables },
   } = useData<Store>()
-
   return (
     <div className="w-full my-4">
       <Head>
