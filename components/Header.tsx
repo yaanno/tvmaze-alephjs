@@ -1,29 +1,12 @@
 import { Link, NavLink } from "aleph/react"
 
-const NavItems = [
-  "Shows",
-  "People",
-  "Networks",
-  "Web",
-  "Channels",
-  "Articles",
-  "Schedule",
-  "Calendar",
-  "Countdown",
-  "Forums",
-]
+const NavItems = ["TV", "Streaming", "Schedule", "Upcoming"]
 
 export default function Header() {
   return (
     <header className="w-full bg-slate-700">
       <div className="max-w-7xl m-auto">
-        <h1>TVMAZE</h1>
-        <input type="search" />
-        <button>Search</button>
-        <div>
-          <Link to="/login">Login</Link>
-          <Link to="/register">Register</Link>
-        </div>
+        <h1 className="text-4xl text-white p-4">Not.Tv.Maze</h1>
       </div>
       <nav className="bg-slate-500">
         <ul className="max-w-full lg:max-w-7xl m-auto flex flex-row flex-wrap">

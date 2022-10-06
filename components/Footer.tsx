@@ -1,8 +1,8 @@
 import { Link } from "aleph/react"
 
-export default function Header() {
+export default function Footer() {
   return (
-    <footer className="w-full p-4 text-lg">
+    <footer className="w-full text-lg">
       <div className="border-t-1 max-w-7xl m-auto pt-4 flex flex-col md:flex-row gap-4 justify-between">
         <div className="">
           <p>Follow us on social media</p>
@@ -11,30 +11,30 @@ export default function Header() {
         <div className="">
           <ul className="flex flex-col sm:flex-row gap-x-4">
             <li>
-              <Link to="/features">Features</Link>
+              <Link to="/">Features</Link>
             </li>
             <li>
-              <Link to="/api">API</Link>
+              <Link to="/">API</Link>
             </li>
             <li>
-              <Link to="/blog">Blog</Link>
+              <Link to="/">Blog</Link>
             </li>
             <li>
-              <Link to="/request">Request a Show</Link>
+              <Link to="/">Request a Show</Link>
             </li>
             <li>
-              <Link to="/policy">Data Policies</Link>
+              <Link to="/">Data Policies</Link>
             </li>
           </ul>
           <ul className="flex flex-col sm:flex-row gap-x-4">
             <li>
-              <Link to="/copyright">Copyright Policy</Link>
+              <Link to="/">Copyright Policy</Link>
             </li>
             <li>
-              <Link to="/privacy">Privacy Policy</Link>
+              <Link to="/">Privacy Policy</Link>
             </li>{" "}
             <li>
-              <Link to="/tos">ToS</Link>
+              <Link to="/">ToS</Link>
             </li>
           </ul>
         </div>

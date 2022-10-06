@@ -1,4 +1,3 @@
-import { Link } from "aleph/react"
 import type { Episode } from "../../models/types.ts"
 
 export default function Listings({ episodes }: { episodes: Episode[] }) {
@@ -18,10 +17,10 @@ export default function Listings({ episodes }: { episodes: Episode[] }) {
               />
             </a>
             <h4 className="text-2xl">
-              <Link to={episode.show.url}>{episode.show.name}</Link>
+              <a href={episode.show.url}>{episode.show.name}</a>
             </h4>
             <p>
-              <Link to={episode.url}>{episode.name}</Link>
+              <a href={episode.url}>{episode.name}</a>
             </p>
           </div>
         ))}
