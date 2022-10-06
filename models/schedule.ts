@@ -75,7 +75,7 @@ function processTimetableData(data: TVScheduleApi.Item[]): TimeTable[] {
   return result
 }
 
-function processData(data: TVScheduleApi.Item[], maxLength = 4) {
+function processData(data: TVScheduleApi.Item[], maxLength = 16) {
   const sorted = sortByRating(data)
   const result = sorted.map((e) => {
     const { season, number, airdate, airstamp, id, url, name, show } = e
@@ -108,7 +108,6 @@ function filterPremiering(data: TVScheduleApi.Item[]) {
 }
 
 export async function scheduledToday(): Promise<Schedule> {
-  // const today = format(new Date(), "yyyy-MM-dd")
   const url = `https://api.tvmaze.com/schedule?country=US`
   const response = await fetch(url)
   if (!response.ok) {
@@ -134,7 +133,6 @@ export async function upcomingPremieres(): Promise<Schedule> {
 }
 
 export async function scheduledTimeTable(): Promise<TimeTable[]> {
-  // const today = format(new Date(), "yyyy-MM-dd")
   const url = `https://api.tvmaze.com/schedule?country=US`
   const response = await fetch(url)
   if (!response.ok) {
